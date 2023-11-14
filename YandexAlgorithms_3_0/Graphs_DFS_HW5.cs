@@ -49,8 +49,10 @@ namespace YandexAlgorithms_3_0
             List<int> result = new List<int>(); //список вершин компоненты связности
             DFS(adjacencyList, visited, 1, ref count, result);  //вызов DFS
             result.Sort();  //сортировка
-            Console.WriteLine(count);
-            for(int i=0; i < result.Count; i++)
+
+            //выводы в консоль
+            Console.WriteLine(count); 
+            for(int i=0; i < result.Count; i++) 
             {
                 Console.Write(result[i]);
                 if (i != result.Count - 1)
@@ -58,6 +60,7 @@ namespace YandexAlgorithms_3_0
                     Console.Write(" ");
                 }
             }
+
             void DFS(List<List<int>> adjacencyList, List<bool> visited, int now, ref int count, List<int> result)    //описание функции DFS
             {
                 visited[now] = true;
@@ -196,10 +199,10 @@ namespace YandexAlgorithms_3_0
 
             for (int i = 1; i < visited.Count; i++)
             {
-                if (visited[i] == 0)
+                if (visited[i] == 0)        
                 {
-                    bool resDFS = DFS(graph, visited, i, 1);
-                    if(resDFS == false)
+                    bool resDFS = DFS(graph, visited, i, 1); // проходим по всем вершинам, на случай, если есть несколько компонент связности
+                    if (resDFS == false)
                     {
                         resMain = false;
                     }
@@ -217,21 +220,111 @@ namespace YandexAlgorithms_3_0
 
             bool DFS(List<List<int>> adjacencyList, List<int> visited, int now, int color)    //описание функции DFS
             {
-                visited[now] = 3 - color;
-                foreach (var neigh in adjacencyList[now])
+                visited[now] = 3 - color;   // сразу красим вершину в другой цвет, отличный от соседа
+                foreach (var neigh in adjacencyList[now])   //начинаем пробегать по всем соседям вршины  
                 {
-                    if (visited[neigh] == 0)
+                    if (visited[neigh] == 0)    //если сосед ещё не посещён, то заходим в дфс для этой вершины
                     {
-                        if(!DFS(adjacencyList, visited, neigh, 3 - color))
+                        bool mayBeTrable = DFS(adjacencyList, visited, neigh, 3 - color);
+                        if (mayBeTrable == false)    //в случае, если там встретилась вершина-сосед такого же цвета - откатываем рекурсии
                         {
                             return false;
                         }
                     }
-                    if (visited[neigh] == 3 - color)
+                    if (visited[neigh] == 3 - color)    //если сосед такого же цвета
                     {
                         return false;
                     }
                 }
+                return true;
+            }
+        }
+
+
+        //Дан ориентированный граф. Необходимо построить топологическую сортировку.
+
+        //Формат ввода
+        //В первой строке входного файла два натуральных числа N и M(1 ≤ N, M ≤ 100 000) —
+        //количество вершин и рёбер в графе соответственно.Далее в M строках перечислены рёбра графа.
+        //Каждое ребро задаётся парой чисел — номерами начальной и конечной вершин соответственно.
+
+        //Формат вывода
+        //Выведите любую топологическую сортировку графа в виде последовательности номеров вершин
+        //(перестановка чисел от 1 до N). Если топологическую сортировку графа построить невозможно, выведите -1.
+
+        //ЗАДАЧА НА ТОПОЛОГИЧЕСКУЮ СОРТИРОВКУ
+        public static void D_Solution_TopologicalSorting(string a)
+        {
+            int [] nums = a.Split(' ').Select(int.Parse).ToArray();
+            int n = nums[0];
+            int m = nums[1];
+            List<List<int>> graph = new List<List<int>>();
+            List<int> visited = new List<int>();    // 0 - белый (не посещена),
+                                                    // 1 - серый (посещена, но есть ещё соседи),
+                                                    // 2 - чёрный (посещена, соседей больше нет) 
+            for (int i = 0;  i <= n; i++)
+            {
+                graph.Add(new List<int>());
+                visited.Add(0);
+            }
+            for (int i = 0; i < m; i++)
+            {
+                int [] vertex = Console.ReadLine().Split(' ').Select(int.Parse).ToArray();
+                graph[vertex[0]].Add(vertex[1]);
+            }
+
+            List<int> topological_way = new List<int>(); // путь, который мы собираем с конца
+            bool mainResult = true; //результирующая переменная, от которой зависит ответ
+            for (int i = 1; i < visited.Count; i ++)    
+            {                                           
+                if (visited[i] == 0)        // проходим по всем вершинам, на случай, если есть несколько компонент связности
+                {
+                    bool tempResult = DFS(graph, visited, i, topological_way);
+                    if (tempResult == false)
+                    {
+                        mainResult = false;
+                    }
+                }
+            }
+
+            if (mainResult == false)
+            {
+                Console.WriteLine(-1);
+            }
+            else{
+                topological_way.Reverse(); //истинный путь
+
+                for (int i = 0; i < topological_way.Count; i++) // вывод топологической сортировки
+                {
+                    Console.Write(topological_way[i]);
+                    if (i != topological_way.Count - 1)
+                    {
+                        Console.Write(" ");
+                    }
+                }
+
+            }
+            
+
+            bool DFS(List<List<int>> graph, List<int> visited, int now, List<int> topological_way) 
+            {
+                visited[now] = 1;
+                foreach(var neigh in graph[now])
+                {
+                    if (visited[neigh] == 0)
+                    {
+                        if(DFS(graph, visited, neigh, topological_way) == false)
+                        {
+                            return false;
+                        }
+                    }
+                    if (visited[neigh] == 1)
+                    {
+                        return false;
+                    }
+                }
+                visited[now] = 2;
+                topological_way.Add(now);
                 return true;
             }
         }
@@ -243,7 +336,11 @@ namespace YandexAlgorithms_3_0
 
             //B_Solution_СonnectivityСomponents(Console.ReadLine());
 
-            C_Solution_BipartiteGraph(Console.ReadLine());
+            //C_Solution_BipartiteGraph(Console.ReadLine());
+
+            //D_Solution_TopologicalSorting(Console.ReadLine());
+
+
         }
     }
 }
