@@ -262,7 +262,7 @@ namespace YandexAlgorithms_3_0
             List<int> visited = new List<int>();    // 0 - белый (не посещена),
                                                     // 1 - серый (посещена, но есть ещё соседи),
                                                     // 2 - чёрный (посещена, соседей больше нет) 
-            for (int i = 0;  i <= n; i++)
+            for (int i = 0; i <= n; i++)
             {
                 graph.Add(new List<int>());
                 visited.Add(0);
@@ -330,6 +330,245 @@ namespace YandexAlgorithms_3_0
         }
 
 
+
+        //Дан неориентированный граф.Требуется определить, есть ли в нем цикл, и, если есть, вывести его.
+
+        //Формат ввода
+        //В первой строке дано одно число n — количество вершин в графе ( 1 ≤ n ≤ 500 ).
+        //Далее в n строках задан сам граф матрицей смежности.
+
+        //Формат вывода
+        //Если в иcходном графе нет цикла, то выведите «NO».
+        //Иначе, в первой строке выведите «YES», во второй строке выведите число k — количество вершин в цикле,
+        //а в третьей строке выведите k различных чисел — номера вершин,
+        //которые принадлежат циклу в порядке обхода(обход можно начинать с любой вершины цикла).
+        //Если циклов несколько, то выведите любой.
+        //ЗАДАЧА НА ПОИСК ЦИКЛА В НЕОРИЕНТИРОВАННОМ ГРАФЕ
+        public static void E_Solution_Cicle(string a)
+        {
+            int.TryParse(a, out int n);
+
+            List<List<int>> graph = new List<List<int>>();
+            List<bool> visited = new List<bool>();
+
+            for(int i = 0; i <= n; i++)
+            {
+                graph.Add(new List<int>());
+                visited.Add(false);
+            }
+
+            for (int i = 1; i <= n; i++)
+            {
+                int [] str = Console.ReadLine().Split(' ').Select(int.Parse).ToArray();
+                for (int j = 0; j < str.Length; j++)
+                {
+                    if (str[j] == 1)
+                    {
+                        graph[i].Add(j+1);
+                    }
+                }
+            }
+
+            HashSet<int> visitedVertex = new HashSet<int>();
+
+            bool mainResult = true;
+            for (int i = 1; i < visited.Count; i++)
+            {
+                if (visited[i] == false)        // проходим по всем вершинам, на случай, если есть несколько компонент связности
+                {
+                    bool tempResult = DFS(graph, visited, i, visitedVertex, -1);
+                    if (tempResult == false)
+                    {
+                        mainResult = false;
+                        break;
+                    }
+                }
+            }
+            if (mainResult == true)
+            {
+                Console.WriteLine("YES");
+                Console.WriteLine(visitedVertex.Count);
+                foreach(var i in visitedVertex)
+                {
+                    Console.Write(i + " ");
+                }
+            }
+            else
+            {
+                Console.WriteLine("NO");
+            }
+
+
+            bool DFS(List<List<int>> graph, List<bool> visited, int now, HashSet<int> visitedVertex, int parent)
+            {
+                visited[now] = true;
+                visitedVertex.Add(now);
+                foreach(var neigh in graph[now])
+                {
+                    if (!visited[neigh])
+                    {
+                        if(DFS(graph, visited, neigh, visitedVertex, now))
+                        {
+                            return true;
+                        }
+                    }
+                    if (visitedVertex.Contains(neigh) && neigh != parent)
+                    {
+                        return true;
+                    }
+                }
+                visitedVertex.Remove(now);
+                return false;
+            }
+        }
+
+
+        //LeetCode 75 - 841
+        public static bool CanVisitAllRooms(List<List<int>> rooms)
+        {
+            List<List<int>> graph = new List<List<int>>();
+            List<bool> visited = new List<bool>();
+
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                graph.Add(new List<int>());
+                visited.Add(false);
+            }
+
+            for(int i = 0; i < rooms.Count; i++)
+            {
+                for(int j = 0; j < rooms[i].Count; j++)
+                {
+                    graph[i].Add(rooms[i][j]);
+                }
+            }
+
+            bool result = true;
+            int count = 0;
+            for(int i = 0; i < visited.Count; i++)
+            {
+                if(visited[i] == false)
+                {
+                    if (count == 1)
+                    {
+                        result = false;
+                        break;
+                    }
+                    count++;
+                    DFS(graph, visited, i);
+                }
+            }
+
+            void DFS(List<List<int>> graph, List<bool> visited, int now)
+            {
+                visited[now] = true;
+                foreach(var neigh in graph[now])
+                {
+                    if (!visited[neigh])
+                    {
+                        DFS(graph, visited, neigh);
+                    }
+                }
+            }
+            
+            return result;
+        }
+
+        //LeetCode 75 - 547
+        public static int FindCircleNum(int[][] isConnected)
+        {
+            List<List<int>> graph = new List<List<int>>();
+            List<bool> visited = new List<bool>();
+
+            for (int i = 0; i <= isConnected.Length; i++)
+            {
+                graph.Add(new List<int>());
+                visited.Add(false);
+            }
+
+            for (int i = 0; i < isConnected.Length; i++)
+            {
+                for(int j = 0; j < isConnected[i].Length; j++)
+                {
+                    if(isConnected[i][j] == 1)
+                    {
+                        graph[i + 1].Add(j + 1);
+                    }
+                }
+            }
+
+            int count = 0;
+            for(int i = 0; i < visited.Count; i++)
+            {
+                if (!visited[i])
+                {
+                    count++;
+                    DFS(graph, visited, i);
+                }
+            }
+
+            return count - 1;
+
+            void DFS(List<List<int>> graph, List<bool> visited, int now)
+            {
+                visited[now] = true;
+                foreach(var neigh in graph[now])
+                {
+                    if (!visited[neigh])
+                    {
+                        DFS(graph,visited, neigh);
+                    }
+                }
+            }
+        }
+
+
+        //LeetCode 75 - 1466
+        public static int MinReorder(int n, int[][] connections)
+        {
+            List<List<int>> graph = new List<List<int>>();
+            List<bool> visited = new List<bool>();
+            List<HashSet<int>> memoryList = new List<HashSet<int>>(); 
+
+            for (int i = 0; i < n; i++)
+            {
+                graph.Add(new List<int>());
+                memoryList.Add(new HashSet<int>());
+                visited.Add(false);
+            }
+
+            for (int i = 0; i < connections.Length; i++)
+            {
+                graph[connections[i][0]].Add(connections[i][1]);
+                graph[connections[i][1]].Add(connections[i][0]);
+                memoryList[connections[i][0]].Add(connections[i][1]);
+            }
+
+
+            int count = 0;
+            DFS(graph, visited, 0, ref count);
+
+            void DFS(List<List<int>> graph, List<bool> visited, int now, ref int count)
+            {
+                visited[now] = true;
+                foreach(var neigh in graph[now])
+                {
+                    if (!visited[neigh])
+                    {
+                        if (memoryList[now].Contains(neigh))
+                        {
+                            count++;
+                        }
+                        DFS(graph, visited, neigh, ref count);
+                    }
+                }
+            }
+           
+
+            return count;
+        }
+
+
         public static void Main(string[] args)
         {
             //A_Solution_DFS(Console.ReadLine());
@@ -340,6 +579,27 @@ namespace YandexAlgorithms_3_0
 
             //D_Solution_TopologicalSorting(Console.ReadLine());
 
+            //E_Solution_Cicle(Console.ReadLine());
+
+            //LeetCode 75 - 841
+            //List<List<int>> nums = new List<List<int>>
+            //{
+            //    new List<int> { 1, 3 },
+            //    new List<int> { 3, 0, 1 },
+            //    new List<int> { 2 },
+            //    new List<int> { 0 }
+            //};
+            //CanVisitAllRooms(nums);
+
+            //LeetCode 75 - 547
+            //int [][] nums = new int [][] { new int[] {1, 1, 0}, new int[] { 1, 1, 0}, new int[] { 0, 0, 1 } };
+            //FindCircleNum(nums);
+
+
+            //LeetCode 75 - 547
+            int n = 6;
+            int[][] connections = { new int[] { 0, 1 }, new int[] { 1, 3 }, new int[] { 2, 3 }, new int[] { 4, 0 }, new int[] { 4, 5 } };
+            Console.WriteLine(MinReorder(n, connections));
 
         }
     }
