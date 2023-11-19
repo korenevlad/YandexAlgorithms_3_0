@@ -563,11 +563,102 @@ namespace YandexAlgorithms_3_0
                     }
                 }
             }
-           
-
             return count;
         }
 
+
+
+        //LeetCode 75 - 399
+        public static double[] CalcEquation(List<List<string>> equations, double[] values, List<List<string>> queries)
+        {
+            Dictionary<string, int> strThrowPos = new Dictionary<string, int>();
+            List<List<List<double>>> graph = new List<List<List<double>>>();
+            List<bool> visited = new List<bool>();
+            int tempPos = 0;
+            for (int i = 0; i < equations.Count; i++)
+            {
+                if (!strThrowPos.ContainsKey(equations[i][0]))
+                {
+                    strThrowPos[equations[i][0]] = tempPos;
+                    graph.Add(new List<List<double>>());
+                    visited.Add(false);
+                    tempPos++;
+                }
+                if (!strThrowPos.ContainsKey(equations[i][1]))
+                {
+                    strThrowPos[equations[i][1]] = tempPos;
+                    graph.Add(new List<List<double>>());
+                    visited.Add(false);
+                    tempPos++;
+                }
+                graph[strThrowPos[equations[i][0]]].Add(new List<double> {(double)strThrowPos[equations[i][1]], values[i] });
+                graph[strThrowPos[equations[i][1]]].Add(new List<double> { (double)strThrowPos[equations[i][0]], values[i]/Math.Pow(values[i],2)});
+            }
+
+            double[] result = new double[queries.Count]; 
+
+            for (int i = 0; i < queries.Count; i++)
+            {
+                double count = 1;
+                string sym1 = queries[i][0];
+                string sym2 = queries[i][1];
+                if (!strThrowPos.ContainsKey(sym1) || !strThrowPos.ContainsKey(sym2))
+                {
+                    result[i] = -1.0;
+                }
+                else if (strThrowPos[sym1] == strThrowPos[sym2])
+                {
+                    result[i] = 1.0;
+                }
+                else
+                {
+                    bool flagMain = DFS(graph, visited, strThrowPos[sym1], strThrowPos[sym2], ref count);
+                    if (flagMain == false)
+                    {
+                        result[i] = count;
+                    }
+                    else
+                    {
+                        result[i] = -1;
+                    }
+                }
+                for (int j = 0; j < visited.Count; j++)
+                {
+                    visited[j] = false;
+                }
+            }
+
+            bool DFS(List<List<List<double>>> graph, List<bool> visited, int now, int end, ref double count)
+            {
+                visited[now] = true;
+                bool flag = false;
+                double tempCount = 1;
+                foreach (var neigh in graph[now])
+                {
+                    if (!visited[(int)neigh[0]])
+                    {
+                        count = count * neigh[1];
+                        tempCount = tempCount * neigh[1];
+                        if ((int)neigh[0] == end)
+                        {
+                            flag = true;
+                            return false;
+                        }
+                        bool tempRes = DFS(graph, visited, (int)neigh[0], end, ref count);
+                        if (!tempRes)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                if(flag == false)
+                {
+                    count = 1;
+                }
+                return true;
+            }
+            return result;
+        }
 
         public static void Main(string[] args)
         {
@@ -597,10 +688,26 @@ namespace YandexAlgorithms_3_0
 
 
             //LeetCode 75 - 547
-            int n = 6;
-            int[][] connections = { new int[] { 0, 1 }, new int[] { 1, 3 }, new int[] { 2, 3 }, new int[] { 4, 0 }, new int[] { 4, 5 } };
-            Console.WriteLine(MinReorder(n, connections));
+            //int n = 6;
+            //int[][] connections = { new int[] { 0, 1 }, new int[] { 1, 3 }, new int[] { 2, 3 }, new int[] { 4, 0 }, new int[] { 4, 5 } };
+            //Console.WriteLine(MinReorder(n, connections));
 
+
+            //LeetCode 75 - 399
+            List<List<string>> equations = new List<List<string>> {
+                new List<string> { "x1","x2" },
+                new List<string> { "x2", "x3" },
+                new List<string> { "x1","x4" },
+                new List<string> { "x2","x5" },
+            };
+            
+            double[] values = new double[4] { 3.0, 0.5, 3.4, 5.6 };
+
+            List<List<string>> queries = new List<List<string>> {
+                new List<string> { "x1","x5" }
+            };
+
+            CalcEquation(equations, values, queries);
         }
     }
 }
